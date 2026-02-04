@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        .table-hover tbody tr {
+            cursor: pointer;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .sort-btn {
+            cursor: pointer;
+            font-size: 1.05em;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease;
+        }
+        .sort-btn:hover {
+            color: #0d6efd;
+            transform: scale(1.2);
+        }
+        .tooltip-custom {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 1000;
+            max-width: 300px;
+            word-wrap: break-word;
+            display: none;
+        }
+        .category-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="mb-4"><i class="bi bi-grid-3x3-gap"></i> Product Dashboard</h1>
+                
+                <!-- Search and Controls -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm theo title...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="itemsPerPage">
+                            <option value="5">5 items/trang</option>
+                            <option value="10" selected>10 items/trang</option>
+                            <option value="20">20 items/trang</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#createModal">
+                            <i class="bi bi-plus-circle"></i> Tạo mới
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Export Button -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <button class="btn btn-primary" id="exportBtn">
+                            <i class="bi bi-download"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th style="position: relative;">
+                                    Title
+                                    <button type="button" class="btn btn-sm btn-link p-0 ms-1 sort-btn" data-sort="title" data-order="asc" title="Sắp xếp">
+                                        ⇅
+                                    </button>
+                                </th>
+                                <th style="position: relative;">
+                                    Price
+                                    <button type="button" class="btn btn-sm btn-link p-0 ms-1 sort-btn" data-sort="price" data-order="asc" title="Sắp xếp">
+                                        ⇅
+                                    </button>
+                                </th>
+                                <th>Category</th>
+                                <th>Images</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- Pagination will be generated here -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail/Edit Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">Chi tiết sản phẩm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="detailModalBody">
+                    <!-- Detail content will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="editBtn">Chỉnh sửa</button>
+                    <button type="button" class="btn btn-success" id="saveBtn" style="display: none;">Lưu</button>
+                    <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">Hủy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Modal -->
+    <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createModalLabel">Tạo sản phẩm mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createForm">
+                        <div class="mb-3">
+                            <label for="createTitle" class="form-label">Title *</label>
+                            <input type="text" class="form-control" id="createTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="createPrice" class="form-label">Price *</label>
+                            <input type="number" class="form-control" id="createPrice" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="createDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="createDescription" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="createCategory" class="form-label">Category *</label>
+                            <select class="form-select" id="createCategory" required>
+                                <option value="" selected disabled>Chọn category...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="createImages" class="form-label">Images (URL, cách nhau bởi dấu phẩy)</label>
+                            <input type="text" class="form-control" id="createImages" placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="createSubmitBtn">Tạo mới</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip for description -->
+    <div class="tooltip-custom" id="descriptionTooltip"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Main Script (data is embedded in script.js) -->
+    <script src="script.js"></script>
+</body>
+</html>
